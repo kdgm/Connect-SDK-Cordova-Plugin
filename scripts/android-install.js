@@ -31,7 +31,7 @@ function AndroidInstall() {}
 AndroidInstall.prototype.steps = [
 	"createTemporaryDirectory",
 	"cloneConnectSDK",
-	"downloadFlingSDK",
+	// "downloadFlingSDK",
 	"cleanup"
 ];
 

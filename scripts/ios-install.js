@@ -29,9 +29,10 @@ if (!isMac) {
 		"GoogleCast_Framework": "./csdk_tmp/GoogleCastSDK-2.7.1-Release/GoogleCast.framework"
 	};
 
-	function safePath(unsafePath) {
-		return path.join(process.cwd(), "./platforms/ios/", unsafePath);
-	}
+	function safePath(unsafePath, quoted) {
+		safe_path = path.join(process.cwd(), "./platforms/ios/", unsafePath);
+		if (quoted) { return "\'" + safe_path + "\'"; } else { return safe_path; };
+	};
 
 	function iOSInstall() {}
 
@@ -109,12 +110,13 @@ if (!isMac) {
 	};
 
 	iOSInstall.prototype.createTemporaryDirectory = function () {
-		return Q.nfcall(fs.readdir, safePath("./"))
+		console.log('createTemporaryDirectory');
+		return Q.nfcall(fs.readdir, safePath("./", false))
 			.then(function (files) {
 			for (var i = 0; i < files.length; i++) {
 				if (files[i].indexOf('.xcodeproj') !== -1) {
 					csdkDirectory = "./" + files[i].substring(0, files[i].indexOf('.xcodeproj')) + "/Plugins/cordova-plugin-connectsdk";
-					return Q.nfcall(fs.mkdir, safePath('./csdk_tmp'));
+					return Q.nfcall(fs.mkdir, safePath('./csdk_tmp', false));
 				}
 			}
 			return Q.reject("Could not find ConnectSDK plugin directory");
@@ -122,24 +124,24 @@ if (!isMac) {
 	};
 
 	iOSInstall.prototype.revert_createTemporaryDirectory = function () {
-		return Q.nfcall(exec, commands.rmRF + " " + safePath("./csdk_tmp"));
+		return Q.nfcall(exec, commands.rmRF + " " + safePath("./csdk_tmp", true));
 	};
 
 	iOSInstall.prototype.downloadConnectSDK = function () {
 		var deferred = Q.defer();
 		console.log("Downloading ConnectSDK");
-		var file = fs.createWriteStream(safePath("./csdk_tmp/ConnectSDK.framework.zip"));
+		var file = fs.createWriteStream(safePath("./csdk_tmp/ConnectSDK.framework.zip", false));
 		request.get(paths.ConnectSDK_Framework)
 			.on('error', function (err) {
 				deferred.reject(err);
 			}).pipe(file).on('close', function () {
 				console.log('Extracting ConnectSDK');
-				Q.nfcall(exec, "unzip -q " + safePath('./csdk_tmp/ConnectSDK.framework.zip') + " -d " + safePath('./csdk_tmp'))
+				Q.nfcall(exec, "unzip -q " + safePath('./csdk_tmp/ConnectSDK.framework.zip', true) + " -d " + safePath('./csdk_tmp', true))
 					.then(function () {
-					return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/ConnectSDK.framework"));
+					return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/ConnectSDK.framework", true));
 				})
 					.then(function () {
-					return Q.nfcall(exec, commands.mv + " " + safePath("./csdk_tmp/ConnectSDK.framework") + " " + safePath(csdkDirectory + "/ConnectSDK.framework"));
+					return Q.nfcall(exec, commands.mv + " " + safePath("./csdk_tmp/ConnectSDK.framework", true) + " " + safePath(csdkDirectory + "/ConnectSDK.framework", true));
 				})
 					.then(function () {
 					deferred.resolve();
@@ -153,31 +155,32 @@ if (!isMac) {
 	};
 
 	iOSInstall.prototype.revert_downloadConnectSDK = function () {
-		return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/ConnectSDK.framework"))
+		console.log('revert_downloadConnectSDK')
+		return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/ConnectSDK.framework", true))
 			.then(function () {
-			return Q.nfcall(exec, commands.touch + " " + safePath(csdkDirectory + "/ConnectSDK.framework"));
+			return Q.nfcall(exec, commands.touch + " " + safePath(csdkDirectory + "/ConnectSDK.framework", true));
 		});
 	};
 
 	iOSInstall.prototype.downloadFlingSDK = function () {
 		var deferred = Q.defer();
 		console.log("Downloading FlingSDK");
-		var file = fs.createWriteStream(safePath("./csdk_tmp/AmazonFling-SDK.zip"));
+		var file = fs.createWriteStream(safePath("./csdk_tmp/AmazonFling-SDK.zip", false));
 		https.get(paths.FlingSDK_URL, function(response) {
 			response.pipe(file).on('close', function () {
 				console.log('Extracting FlingSDK');
-				Q.nfcall(exec, "unzip -q " + safePath('./csdk_tmp/AmazonFling-SDK.zip') + " -d " + safePath('./csdk_tmp'))
+				Q.nfcall(exec, "unzip -q " + safePath('./csdk_tmp/AmazonFling-SDK.zip', true) + " -d " + safePath('./csdk_tmp', true))
 					.then(function () {
-					return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/AmazonFling.framework"));
+					return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/AmazonFling.framework", true));
 				})
 					.then(function () {
-					return Q.nfcall(exec, commands.mv + " " + safePath(paths.AmazonFling_Framework) + " " + safePath(csdkDirectory + "/AmazonFling.framework"));
+					return Q.nfcall(exec, commands.mv + " " + safePath(paths.AmazonFling_Framework, true) + " " + safePath(csdkDirectory + "/AmazonFling.framework", true));
 				})
 					.then(function () {
-					return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/Bolts.framework"));
+					return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/Bolts.framework", true));
 				})
 					.then(function () {
-					return Q.nfcall(exec, commands.mv + " " + safePath(paths.Bolts_Framework) + " " + safePath(csdkDirectory + "/Bolts.framework"));
+					return Q.nfcall(exec, commands.mv + " " + safePath(paths.Bolts_Framework, true) + " " + safePath(csdkDirectory + "/Bolts.framework", true));
 				})
 					.then(function () {
 					deferred.resolve();
@@ -194,31 +197,31 @@ if (!isMac) {
 	};
 
 	iOSInstall.prototype.revert_downloadFlingSDK = function () {
-		return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/AmazonFling.framework"))
+		return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/AmazonFling.framework", true))
 			.then(function () {
-			return Q.nfcall(exec, commands.touch + " " + safePath(csdkDirectory + "/AmazonFling.framework"));
+			return Q.nfcall(exec, commands.touch + " " + safePath(csdkDirectory + "/AmazonFling.framework", true));
 		})
 			.then(function () {
-			return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/Bolts.framework"));
+			return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/Bolts.framework", true));
 		})
 			.then(function () {
-			return Q.nfcall(exec, commands.touch + " " + safePath(csdkDirectory + "/Bolts.framework"));
+			return Q.nfcall(exec, commands.touch + " " + safePath(csdkDirectory + "/Bolts.framework", true));
 		});
 	};
 
 	iOSInstall.prototype.downloadGoogleCastSDK = function () {
 		var deferred = Q.defer();
 		console.log("Downloading GoogleCast SDK");
-		var file = fs.createWriteStream(safePath("./csdk_tmp/GoogleCastSDK.zip"));
+		var file = fs.createWriteStream(safePath("./csdk_tmp/GoogleCastSDK.zip", false));
 		https.get(paths.GoogleCastSDK_URL, function(response) {
 			response.pipe(file).on('close', function () {
-				console.log('Extracting ConnectSDK');
-				Q.nfcall(exec, "unzip -q " + safePath("./csdk_tmp/GoogleCastSDK.zip") + " -d " + safePath('./csdk_tmp'))
+				console.log('Extracting GoogleCast SDK');
+				Q.nfcall(exec, "unzip -q " + safePath("./csdk_tmp/GoogleCastSDK.zip", true) + " -d " + safePath('./csdk_tmp', true))
 					.then(function () {
-					return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/GoogleCast.framework"));
+					return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/GoogleCast.framework", true));
 				})
 					.then(function () {
-					return Q.nfcall(exec, commands.mv + " " + safePath(paths.GoogleCast_Framework) + " " + safePath(csdkDirectory + "/GoogleCast.framework"));
+					return Q.nfcall(exec, commands.mv + " " + safePath(paths.GoogleCast_Framework, true) + " " + safePath(csdkDirectory + "/GoogleCast.framework", true));
 				})
 					.then(function () {
 					deferred.resolve();
@@ -235,9 +238,9 @@ if (!isMac) {
 	};
 
 	iOSInstall.prototype.revert_downloadGoogleCastSDK = function () {
-		return Q.nfcall(exec, commands.rm + safePath(csdkDirectory + "/GoogleCast.framework"))
+		return Q.nfcall(exec, commands.rm + safePath(csdkDirectory + "/GoogleCast.framework", true))
 			.then(function () {
-			return Q.nfcall(exec, commands.touch + safePath(csdkDirectory + "/GoogleCast.framework"));
+			return Q.nfcall(exec, commands.touch + safePath(csdkDirectory + "/GoogleCast.framework", true));
 		});
 	};
 
