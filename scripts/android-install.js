@@ -17,9 +17,6 @@ var commands = {
 var paths = {
 	"ConnectSDK_Repository": "https://github.com/ConnectSDK/Connect-SDK-Android.git",
 	"ConnectSDK_Tag": "tags/1.6.0",
-	"FlingSDK_URL": "https://s3-us-west-1.amazonaws.com/amazon-fling/AmazonFling-SDK.zip",
-	"AmazonFling_Jar": "./csdk_tmp/android-sdk/lib/AmazonFling.jar",
-	"WhisperPlay_Jar": "./csdk_tmp/android-sdk/lib/android/WhisperPlay.jar"
 };
 
 function safePath(unsafePath) {
@@ -31,7 +28,6 @@ function AndroidInstall() {}
 AndroidInstall.prototype.steps = [
 	"createTemporaryDirectory",
 	"cloneConnectSDK",
-	// "downloadFlingSDK",
 	"cleanup"
 ];
 
@@ -141,42 +137,6 @@ AndroidInstall.prototype.revert_cloneConnectSDK = function () {
 	.then (function () {
 		return Q.nfcall(exec, commands.mv + " " + safePath("./csdk_tmp/" + csdkDirectory) + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory));
 	})
-};
-
-AndroidInstall.prototype.downloadFlingSDK = function () {
-	var deferred = Q.defer();
-	console.log("Downloading Fling SDK");
-	var file = fs.createWriteStream(safePath("./csdk_tmp/AmazonFling-SDK.zip"));
-	https.get(paths.FlingSDK_URL, function(response) {
-		response.pipe(file).on('close', function () {
-			console.log('Extracting Fling SDK');
-			var uz = fs.createReadStream(safePath('./csdk_tmp/AmazonFling-SDK.zip')).pipe(unzip.Extract({path: safePath('./csdk_tmp')}));
-			uz.on('error', function (err) {
-				deferred.reject(err);
-			});
-			uz.on('close', function () {
-				if (deferred.promise.inspect().state !== "rejected") {
-					console.log("Moving AmazonFling.jar");
-					Q.nfcall(exec, commands.mv + " " + safePath(paths.AmazonFling_Jar) + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory + "/modules/firetv/libs/AmazonFling.jar"))
-					.then(function () {
-						console.log("Moving WhisperPlay.jar");
-						return Q.nfcall(exec, commands.mv + " " + safePath(paths.WhisperPlay_Jar) + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory + "/modules/firetv/libs/WhisperPlay.jar"));
-					})
-					.then(function () {
-						deferred.resolve();
-					})
-					.catch(function (err) {
-						deferred.reject(err);
-					});
-				}
-			});
-		});
-	});
-	return deferred.promise;
-};
-
-AndroidInstall.prototype.revert_downloadFlingSDK = function () {
-	return Q.resolve();
 };
 
 AndroidInstall.prototype.cleanup = function () {
