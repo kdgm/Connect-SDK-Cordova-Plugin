@@ -94,7 +94,7 @@ AndroidInstall.prototype.cloneConnectSDK = function () {
 		return Q.nfcall(exec, "git checkout " + paths.ConnectSDK_Tag, {cwd: safePath("./cordova-plugin-connectsdk/" + csdkDirectory)});
 	})
 	.then(function () {
-		return Q.nfcall(exec, "git submodule update --init", {cwd: safePath("./cordova-plugin-connectsdk/" + csdkDirectory)});
+		return Q.nfcall(exec, "git submodule update --init --recursive --remote ", {cwd: safePath("./cordova-plugin-connectsdk/" + csdkDirectory)});
 	})
 	.then(function () {
 		return Q.nfcall(exec, commands.cp + " " + safePath("../../plugins/cordova-plugin-connectsdk/Connect-SDK-Android/build.gradle") + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory + "/build-extras.gradle"));
