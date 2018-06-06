@@ -1239,10 +1239,10 @@ var MediaControlWrapper = createClass(
         this._objectId = data.objectId;
     },
 
-    _sendCommand: function (command, params) {
+    _sendCommand: function (command, params, subscribe) {
         params = params || {};
         params.objectId = this._objectId;
-        return this._device._sendCommand("mediaControl", command, params);
+        return this._device._sendCommand("mediaControl", command, params, subscribe);
     },
 
     play: function () {
@@ -1277,8 +1277,8 @@ var MediaControlWrapper = createClass(
         return this._sendCommand("getPosition");
     },
 
-    subscribePlayState: function () {
-        return this._sendCommand("subscribePlayState");
+    subscribePlayState: function (subscribe) {
+        return this._sendCommand("subscribePlayState", {}, subscribe);
     }
 });
 

@@ -15,11 +15,8 @@ var commands = {
 };
 
 var paths = {
-	"ConnectSDK_Repository": "https://github.com/ConnectSDK/Connect-SDK-Android.git",
-	"ConnectSDK_Tag": "tags/1.6.0",
-	"FlingSDK_URL": "https://s3-us-west-1.amazonaws.com/amazon-fling/AmazonFling-SDK.zip",
-	"AmazonFling_Jar": "./csdk_tmp/android-sdk/lib/AmazonFling.jar",
-	"WhisperPlay_Jar": "./csdk_tmp/android-sdk/lib/android/WhisperPlay.jar"
+	"ConnectSDK_Repository": "https://github.com/kdgm/Connect-SDK-Android-KDGM.git",
+	"ConnectSDK_Tag": "kdgm",
 };
 
 function safePath(unsafePath) {
@@ -31,7 +28,6 @@ function AndroidInstall() {}
 AndroidInstall.prototype.steps = [
 	"createTemporaryDirectory",
 	"cloneConnectSDK",
-	"downloadFlingSDK",
 	"cleanup"
 ];
 
@@ -39,34 +35,7 @@ AndroidInstall.prototype.start = function () {
 	console.log("Starting ConnectSDK Android install");
 	var self = this;
 
-	var deferred = Q.defer();
-
-	// Check for updated install steps
-	console.log("Checking for updated configuration");
-	http.get("http://ec2-54-201-108-205.us-west-2.compute.amazonaws.com/CordovaPlugin/1.6.0/Android/paths.json", function(res) {
-		var body = '';
-
-		res.on('data', function(chunk){
-			body += chunk;
-		});
-
-		res.on('end', function() {
-			try {
-				var tmp_paths = JSON.parse(body);
-				paths = tmp_paths;
-			} catch(err) {
-				console.log("Error parsing updates, using default configuration (install might fail)");
-			}
-			deferred.resolve();
-		});
-	}).on('error', function(e) {
-		console.log("Error checking for updates, using default configuration (install might fail)");
-		deferred.resolve();
-	});
-
-	deferred.promise.then(function () {
-		self.executeStep(0);
-	});
+	self.executeStep(0);
 };
 
 AndroidInstall.prototype.executeStep = function (step) {
@@ -119,13 +88,13 @@ AndroidInstall.prototype.cloneConnectSDK = function () {
 		}
 	})
 	.then(function () {
-		return Q.nfcall(exec, "git clone --depth 1 " + paths.ConnectSDK_Repository + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory));
+		return Q.nfcall(exec, "git clone " + paths.ConnectSDK_Repository + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory));
 	})
 	.then(function () {
 		return Q.nfcall(exec, "git checkout " + paths.ConnectSDK_Tag, {cwd: safePath("./cordova-plugin-connectsdk/" + csdkDirectory)});
 	})
 	.then(function () {
-		return Q.nfcall(exec, "git submodule update --init", {cwd: safePath("./cordova-plugin-connectsdk/" + csdkDirectory)});
+		return Q.nfcall(exec, "git submodule update --init --recursive --remote ", {cwd: safePath("./cordova-plugin-connectsdk/" + csdkDirectory)});
 	})
 	.then(function () {
 		return Q.nfcall(exec, commands.cp + " " + safePath("../../plugins/cordova-plugin-connectsdk/Connect-SDK-Android/build.gradle") + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory + "/build-extras.gradle"));
@@ -141,42 +110,6 @@ AndroidInstall.prototype.revert_cloneConnectSDK = function () {
 	.then (function () {
 		return Q.nfcall(exec, commands.mv + " " + safePath("./csdk_tmp/" + csdkDirectory) + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory));
 	})
-};
-
-AndroidInstall.prototype.downloadFlingSDK = function () {
-	var deferred = Q.defer();
-	console.log("Downloading Fling SDK");
-	var file = fs.createWriteStream(safePath("./csdk_tmp/AmazonFling-SDK.zip"));
-	https.get(paths.FlingSDK_URL, function(response) {
-		response.pipe(file).on('close', function () {
-			console.log('Extracting Fling SDK');
-			var uz = fs.createReadStream(safePath('./csdk_tmp/AmazonFling-SDK.zip')).pipe(unzip.Extract({path: safePath('./csdk_tmp')}));
-			uz.on('error', function (err) {
-				deferred.reject(err);
-			});
-			uz.on('close', function () {
-				if (deferred.promise.inspect().state !== "rejected") {
-					console.log("Moving AmazonFling.jar");
-					Q.nfcall(exec, commands.mv + " " + safePath(paths.AmazonFling_Jar) + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory + "/modules/firetv/libs/AmazonFling.jar"))
-					.then(function () {
-						console.log("Moving WhisperPlay.jar");
-						return Q.nfcall(exec, commands.mv + " " + safePath(paths.WhisperPlay_Jar) + " " + safePath("./cordova-plugin-connectsdk/" + csdkDirectory + "/modules/firetv/libs/WhisperPlay.jar"));
-					})
-					.then(function () {
-						deferred.resolve();
-					})
-					.catch(function (err) {
-						deferred.reject(err);
-					});
-				}
-			});
-		});
-	});
-	return deferred.promise;
-};
-
-AndroidInstall.prototype.revert_downloadFlingSDK = function () {
-	return Q.resolve();
 };
 
 AndroidInstall.prototype.cleanup = function () {

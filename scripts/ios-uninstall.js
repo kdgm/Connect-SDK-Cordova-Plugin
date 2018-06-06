@@ -7,7 +7,7 @@ var commands = {
 };
 
 function safePath(unsafePath) {
-	return path.join(process.cwd(), "./platforms/ios/", unsafePath);
+	return "\'" + path.join(process.cwd(), "./platforms/ios/", unsafePath) + "\'";
 }
 
 exec(commands.rmRF + " " + safePath("./csdk_tmp"), {}, function (err) {
