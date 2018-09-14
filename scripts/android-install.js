@@ -16,7 +16,7 @@ var commands = {
 
 var paths = {
 	"ConnectSDK_Repository": "https://github.com/kdgm/Connect-SDK-Android-KDGM.git",
-	"ConnectSDK_Tag": "1.6.0-kdgm1",
+	"ConnectSDK_Tag": "master",
 };
 
 function safePath(unsafePath) {
