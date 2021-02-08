@@ -3,7 +3,6 @@ var exec = require('child_process').exec,
 	fs = require('fs'),
 	http = require('http'),
 	https = require('https'),
-	unzip = require('unzip'),
 	isWin = /^win/.test(process.platform),
 	Q = require('q'),
 	csdkDirectory;
