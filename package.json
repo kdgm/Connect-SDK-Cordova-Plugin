@@ -41,5 +41,8 @@
   "bugs": {
     "url": "https://github.com/kdgm/cordova-plugin-connectsdk/issues"
   },
-  "homepage": "https://github.com/kdgm/cordova-plugin-connectsdk#readme"
+  "homepage": "https://github.com/kdgm/cordova-plugin-connectsdk#readme",
+  "dependencies": {
+    "q": "^1.5.1"
+  }
 }
