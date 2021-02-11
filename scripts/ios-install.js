@@ -1,12 +1,10 @@
-var exec = require('child_process').exec,
-	path = require('path'),
-	fs = require('fs'),
-	request = require('request'),
-	http = require('http'),
-	https = require('https'),
-	isMac = /^darwin/.test(process.platform),
-	Q = require('q'),
-	csdkDirectory;
+const exec = require('child_process').exec;
+const path = require('path');
+const fs = require('fs');
+const { https } = require('follow-redirects');
+const isMac = /^darwin/.test(process.platform);
+const Q = require('q');
+let csdkDirectory;
 
 if (!isMac) {
 	console.log('iOS development is only supported on Mac OS X system, cowardly refusing to install the plugin');

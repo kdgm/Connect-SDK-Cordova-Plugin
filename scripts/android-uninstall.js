@@ -1,6 +1,6 @@
-var exec = require('child_process').exec,
-	path = require('path'),
-	isWin = /^win/.test(process.platform);
+const exec = require('child_process').exec;
+const path = require('path');
+const isWin = /^win/.test(process.platform);
 
 var commands = {
 	rmRF: isWin ? "rmdir /s" : "rm -rf",

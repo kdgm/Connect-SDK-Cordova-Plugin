@@ -1,11 +1,9 @@
-var exec = require('child_process').exec,
-	path = require('path'),
-	fs = require('fs'),
-	http = require('http'),
-	https = require('https'),
-	isWin = /^win/.test(process.platform),
-	Q = require('q'),
-	csdkDirectory;
+const exec = require('child_process').exec;
+const path = require('path');
+const fs = require('fs');
+const isWin = /^win/.test(process.platform);
+const Q = require('q');
+let csdkDirectory = '';
 
 var commands = {
 	rmRF: isWin ? "rmdir /S /Q" : "rm -rf",
