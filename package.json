@@ -37,9 +37,13 @@
     }
   ],
   "author": "",
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/kdgm/cordova-plugin-connectsdk/issues"
   },
-  "homepage": "https://github.com/kdgm/cordova-plugin-connectsdk#readme"
+  "homepage": "https://github.com/kdgm/cordova-plugin-connectsdk#readme",
+  "dependencies": {
+    "follow-redirects": "^1.13.2",
+    "q": "^1.5.1"
+  }
 }

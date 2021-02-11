@@ -18,6 +18,8 @@
         <merges target="ConnectSDK" />
     </js-module>
 
+    <hook type="before_plugin_install" src="scripts/install_dependencies.js" />
+
     <platform name="ios">
 
         <js-module src="www/ios-capabilities.js" name="Capabilities.js">
