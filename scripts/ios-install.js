@@ -96,25 +96,26 @@ if (!isMac) {
 		var deferred = Q.defer();
 		console.log("Downloading ConnectSDK from: " + paths.ConnectSDK_Framework);
 		var file = fs.createWriteStream(safePath("./csdk_tmp/ConnectSDK.framework.zip", false));
-		request.get(paths.ConnectSDK_Framework)
-			.on('error', function (err) {
-				deferred.reject(err);
-			}).pipe(file).on('close', function () {
+		https.get(paths.ConnectSDK_Framework, function(response) {
+			response.pipe(file).on('close', function () {
 				console.log('Extracting ConnectSDK');
 				Q.nfcall(exec, "unzip -q " + safePath('./csdk_tmp/ConnectSDK.framework.zip', true) + " -d " + safePath('./csdk_tmp', true))
-					.then(function () {
+				.then(function () {
 					return Q.nfcall(exec, commands.rm + " " + safePath(csdkDirectory + "/ConnectSDK.framework", true));
 				})
-					.then(function () {
+				.then(function () {
 					return Q.nfcall(exec, commands.mv + " " + safePath("./csdk_tmp/ConnectSDK.framework", true) + " " + safePath(csdkDirectory + "/ConnectSDK.framework", true));
 				})
-					.then(function () {
+				.then(function () {
 					deferred.resolve();
 				})
-					.catch(function (err) {
+				.catch(function (err) {
 					deferred.reject(err);
 				});
 			});
+		}).on('error', function (err) {
+			deferred.reject(err);
+		});
 
 		return deferred.promise;
 	};
