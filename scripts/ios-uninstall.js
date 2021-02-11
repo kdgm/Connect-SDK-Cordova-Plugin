@@ -2,17 +2,21 @@ const exec = require('child_process').exec;
 const path = require('path');
 const isWin = /^win/.test(process.platform);
 
-var commands = {
-	rmRF: isWin ? "rmdir /s" : "rm -rf"
-};
+module.exports = function (ctx) {
+	const projectRoot = ctx.opts.projectRoot
 
-function safePath(unsafePath) {
-	return "\'" + path.join(process.cwd(), "./platforms/ios/", unsafePath) + "\'";
-}
+	var commands = {
+		rmRF: isWin ? "rmdir /s" : "rm -rf"
+	};
 
-exec(commands.rmRF + " " + safePath("./csdk_tmp"), {}, function (err) {
-	if (err) {
-		console.error("There was an error removing the platforms/ios/csdk_tmp directory. Please remove this folder.");
+	function safePath(unsafePath) {
+		return "\'" + path.join(projectRoot, "./platforms/ios/", unsafePath) + "\'";
 	}
-	console.log("ConnectSDK iOS uninstall finished");
-});
+
+	exec(commands.rmRF + " " + safePath("./csdk_tmp"), {}, function (err) {
+		if (err) {
+			console.error("There was an error removing the platforms/ios/csdk_tmp directory. Please remove this folder.");
+		}
+		console.log("ConnectSDK iOS uninstall finished");
+	});
+}
